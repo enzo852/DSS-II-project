@@ -7,7 +7,7 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    // Each DbSet = one table in the database
+    
     public DbSet<User> Users { get; set; }
     public DbSet<TodoItem> TodoItems { get; set; }
 
@@ -15,13 +15,13 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // User table rules
+        
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
 
             entity.HasIndex(u => u.Email)
-                  .IsUnique();               // no two users can share the same email
+                  .IsUnique();              
 
             entity.Property(u => u.Email)
                   .IsRequired()
@@ -31,7 +31,6 @@ public class AppDbContext : DbContext
                   .HasMaxLength(100);
         });
 
-        // TodoItem table rules
         modelBuilder.Entity<TodoItem>(entity =>
         {
             entity.HasKey(t => t.Id);
@@ -44,11 +43,10 @@ public class AppDbContext : DbContext
                   .HasMaxLength(1000);
 
             entity.Property(t => t.Priority)
-                  .HasConversion<string>()   // store "low"/"medium"/"high" as text, not a number
+                  .HasConversion<string>()   
                   .IsRequired();
 
-            // One User has many TodoItems
-            // If a User is deleted, all their todos are deleted too
+    
             entity.HasOne(t => t.User)
                   .WithMany(u => u.Todos)
                   .HasForeignKey(t => t.UserId)
