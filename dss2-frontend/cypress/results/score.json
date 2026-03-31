@@ -1,10 +1,10 @@
 {
-  "startedAt": "2026-03-04T13:51:44.042Z",
+  "startedAt": "2026-03-30T08:56:53.046Z",
   "categories": {
     "Authentication & user isolation": {
-      "earned": 0,
+      "earned": 10,
       "max": 15,
-      "passed": 0,
+      "passed": 2,
       "total": 3
     },
     "Guest public todos": {
@@ -38,9 +38,9 @@
       "total": 2
     },
     "Search": {
-      "earned": 3,
+      "earned": 0,
       "max": 6,
-      "passed": 1,
+      "passed": 0,
       "total": 2
     },
     "Bonus: Redis integration": {
@@ -56,6 +56,6 @@
       "total": 1
     }
   },
-  "totalEarned": 3,
+  "totalEarned": 10,
   "maxEarnable": 110
 }
