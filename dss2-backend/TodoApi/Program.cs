@@ -1,41 +1,106 @@
+using System.Text;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using TodoApi.Data;
+using TodoApi.Services;
+using System.IdentityModel.Tokens.Jwt;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// ─────────────────────────────────────────
+// 1. CONTROLLERS + JSON OPTIONS
+// ─────────────────────────────────────────
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Serialize enums as strings ("low" not 0)
+        options.JsonSerializerOptions.Converters
+            .Add(new JsonStringEnumConverter());
+    });
+
+// ─────────────────────────────────────────
+// 2. SWAGGER
+// ─────────────────────────────────────────
 builder.Services.AddOpenApi();
+// ─────────────────────────────────────────
+// 3. DATABASE
+// ─────────────────────────────────────────
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    var connString = builder.Configuration
+                            .GetConnectionString("DefaultConnection");
+    options.UseNpgsql(connString);
+});
+
+// ─────────────────────────────────────────
+// 4. JWT AUTHENTICATION
+// ─────────────────────────────────────────
+
+// Prevent ASP.NET from remapping JWT claim names
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+var jwt = builder.Configuration.GetSection("Jwt");
+var key = Encoding.UTF8.GetBytes(jwt["Key"]!);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer            = true,
+            ValidateAudience          = true,
+            ValidateIssuerSigningKey  = true,
+            ValidateLifetime          = true,
+            ValidIssuer               = jwt["Issuer"],
+            ValidAudience             = jwt["Audience"],
+            IssuerSigningKey          = new SymmetricSecurityKey(key),
+            ClockSkew                 = TimeSpan.FromMinutes(1)
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// ─────────────────────────────────────────
+// 5. CORS
+// ─────────────────────────────────────────
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // React dev server
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// ─────────────────────────────────────────
+// 6. HTTP CONTEXT ACCESSOR
+// ─────────────────────────────────────────
+builder.Services.AddHttpContextAccessor();
+
+// ─────────────────────────────────────────
+// 7. SERVICES
+// ─────────────────────────────────────────
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITodoService, TodoService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ─────────────────────────────────────────
+// 8. MIDDLEWARE PIPELINE
+// ─────────────────────────────────────────
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+// ORDER MATTERS — Authentication before Authorization
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
+app.MapControllers();
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
