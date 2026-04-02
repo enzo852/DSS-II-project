@@ -20,11 +20,36 @@ public class TodosController : ControllerBase
     // Helper — reads the logged-in user's ID from the JWT token
     private Guid GetUserId()
     {
-        var sub = User.FindFirstValue("sub");
+        // Try all possible claim name variations
+        var sub = User.FindFirstValue("sub")
+            ?? User.FindFirstValue("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        Console.WriteLine($"[DEBUG] All claims: {string.Join(", ", User.Claims.Select(c => $"{c.Type}={c.Value}"))}");
+
         if (sub == null || !Guid.TryParse(sub, out var userId))
-        throw new UnauthorizedAccessException("User not authenticated.");
+            throw new UnauthorizedAccessException("User not authenticated.");
+
         return userId;
     }
+
+    // TEMPORARY DIAGNOSTIC — remove after fixing
+[HttpGet("debug-auth")]
+public IActionResult DebugAuth()
+{
+    var authHeader = Request.Headers["Authorization"].ToString();
+    var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    
+    return Ok(new {
+        isAuthenticated,
+        authHeader = authHeader.Length > 20 
+            ? authHeader.Substring(0, 20) + "..." 
+            : authHeader,
+        claims,
+        identityName = User.Identity?.Name
+    });
+}
 
     // ─────────────────────────────────────────
     // PUBLIC — no auth required

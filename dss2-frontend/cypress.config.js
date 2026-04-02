@@ -6,7 +6,7 @@ export default defineConfig({
   e2e: {
     baseUrl: process.env.CYPRESS_baseUrl || "http://localhost:5173",
     env: {
-      apiBaseUrl: process.env.CYPRESS_API_BASE_URL || "http://localhost:3087"
+      apiBaseUrl: process.env.CYPRESS_API_BASE_URL || "http://localhost:3087",
     },
     setupNodeEvents(on, config) {
       on("task", {
@@ -15,9 +15,16 @@ export default defineConfig({
           fs.mkdirSync(path.dirname(abs), { recursive: true });
           fs.writeFileSync(abs, JSON.stringify(data, null, 2), "utf-8");
           return null;
-        }
+        },
       });
       return config;
-    }
-  }
+    },
+  },
+
+  component: {
+    devServer: {
+      framework: "react",
+      bundler: "vite",
+    },
+  },
 });

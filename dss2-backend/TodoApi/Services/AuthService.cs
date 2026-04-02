@@ -76,24 +76,22 @@ public class AuthService : IAuthService
 
     private string GenerateJwtToken(User user)
     {
-        var jwt = _configuration.GetSection("Jwt");
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(jwt["Key"]!));
+            Encoding.UTF8.GetBytes("TodoAppJwtSecretKey2024SuperSafeXXXXXXXX"));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim("sub", user.Id.ToString()),
+            new Claim("email", user.Email),
             new Claim("displayName", user.DisplayName ?? "")
         };
 
         var token = new JwtSecurityToken(
-            issuer: jwt["Issuer"],
-            audience: jwt["Audience"],
+            issuer: "TodoApi",
+            audience: "TodoClient",
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(
-                int.Parse(jwt["ExpiresMinutes"]!)),
+            expires: DateTime.UtcNow.AddMinutes(60),
             signingCredentials: creds
         );
 
