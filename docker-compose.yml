@@ -1,0 +1,46 @@
+services:
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: tododb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin1234
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./dss2-backend/TodoApi
+      dockerfile: Dockerfile
+    ports:
+      - "3087:3087"
+    environment:
+      ASPNETCORE_URLS: "http://+:3087"
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=tododb;Username=postgres;Password=Admin1234"
+      Jwt__Issuer: "TodoApi"
+      Jwt__Audience: "TodoClient"
+      Jwt__Key: "TodoAppJwtSecretKey2024SuperSafeXXXXXXXX"
+      Jwt__ExpiresMinutes: "60"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./DSS2-FRONTEND
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:3087
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
