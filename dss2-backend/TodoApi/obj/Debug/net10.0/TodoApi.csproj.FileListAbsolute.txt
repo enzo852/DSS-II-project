@@ -113,6 +113,7 @@ C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\TodoApi.Ass
 C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\TodoApi.csproj.CoreCompileInputs.cache
 C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\TodoApi.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\TodoApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\TodoApi.sourcelink.json
 C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\enzom\DSS-II-project\dss2-backend\TodoApi\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
